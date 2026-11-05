@@ -18,6 +18,32 @@ python app.py
 # Open http://localhost:5000
 ```
 
+## Deploy to Vercel
+
+The app is pre-configured for Vercel (zero-config Flask, `vercel.json`,
+`.python-version`, pinned `requirements.txt`, pre-trained model cache).
+
+1. Import the GitHub repo at <https://vercel.com/new>
+   (repo: `AnkitKolhe149/flask-metal-cooling-pinn`).
+2. Set **Root Directory** to `flask_app` (Settings → General → Root Directory).
+   This is required — Vercel looks for `app.py` there.
+3. Framework Preset: **Flask** (auto-detected from `requirements.txt`).
+4. Click **Deploy**.
+
+After the first deploy, every request loads the pre-trained models from
+`static/models/models.pkl` instead of retraining (no cold-start timeout).
+
+### Regenerating the models
+
+After changing the data or hyperparameters:
+
+```bash
+cd flask_app
+python train_models.py   # ~30-60 s, rewrites static/models/models.pkl
+git add static/models/models.pkl && git commit -m "Update model cache"
+git push
+```
+
 ## Pages
 
 | Page | URL | Content |
