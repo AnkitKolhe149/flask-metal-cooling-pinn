@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}EDA — Metal Cooling{% endblock %}
+{% set active = 'eda' %}
+{% block content %}
+<div class="page-header">
+  <h1>📊 Exploratory Data Analysis</h1>
+  <p class="subtitle">Understanding the quenching dataset: 5,011 observations across 24 experimental cooling curves</p>
+</div>
+
+<!-- Dataset Health Card -->
+<div class="grid-4" id="stats-row" style="margin-bottom:1.5rem">
+  <div class="card" style="text-align:center"><div class="spinner">Loading…</div></div>
+  <div class="card" style="text-align:center"><div class="spinner">Loading…</div></div>
+  <div class="card" style="text-align:center"><div class="spinner">Loading…</div></div>
+  <div class="card" style="text-align:center"><div class="spinner">Loading…</div></div>
+</div>
+
+<!-- Dataset summary -->
+<div class="grid-2" style="margin-bottom:1.5rem">
+  <div class="card">
+    <h2>📋 Dataset Structure</h2>
+    <p style="margin-bottom:1rem">Each row represents one time-temperature measurement from an experimental quenching curve. The data is structured as 24 cooling experiments — the full factorial of 3 oils × 2 steels × 4 bath temperatures.</p>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">time</td><td><span class="chip chip-indigo">float</span></td><td>Elapsed time in seconds</td></tr>
+        <tr><td class="mono">temperature</td><td><span class="chip chip-indigo">float</span></td><td>Sample centre temperature (°C)</td></tr>
+        <tr><td class="mono">oil</td><td><span class="chip chip-green">cat</span></td><td>Sunflower / Soy / Mineral</td></tr>
+        <tr><td class="mono">material</td><td><span class="chip chip-green">cat</span></td><td>AISI 1045 / AISI 4340</td></tr>
+        <tr><td class="mono">bath</td><td><span class="chip chip-amber">float</span></td><td>Oil bath temperature: 25/40/60/80 °C</td></tr>
+        <tr><td class="mono">tau (τ)</td><td><span class="chip chip-indigo">float</span></td><td>Dimensionless time = t / t_max ∈ [0,1]</td></tr>
+        <tr><td class="mono">theta (θ)</td><td><span class="chip chip-indigo">float</span></td><td>Dimensionless temp = (T−T_bath)/(T₀−T_bath)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h2>🩺 Dataset Health</h2>
+    <div id="health-panel">
+      <div style="display:flex;align-items:center;justify-content:center;height:180px;color:var(--muted)">Loading health metrics…</div>
+    </div>
+    <div class="divider"></div>
+    <h3 style="margin-bottom:.6rem">Experimental Design</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+      <span class="chip chip-amber">☀️ Sunflower oil</span>
+      <span class="chip chip-green">🌱 Soy oil</span>
+      <span class="chip chip-indigo">⛽ Mineral oil</span>
+      <span class="chip chip-red">AISI 1045</span>
+      <span class="chip chip-red">AISI 4340</span>
+      <span class="chip chip-indigo">Bath 25°C</span>
+      <span class="chip chip-indigo">Bath 40°C</span>
+      <span class="chip chip-indigo">Bath 60°C</span>
+      <span class="chip chip-indigo">Bath 80°C</span>
+    </div>
+    <p style="margin-top:.8rem;font-size:.82rem">The dataset is <strong style="color:var(--green)">complete with no missing values</strong> after preprocessing. Duplicate time-steps within each curve were removed. Each curve is sorted by time and validated for monotonic decreasing temperature behaviour.</p>
+  </div>
+</div>
+
+<!-- Cooling curves selector -->
+<div class="card" style="margin-bottom:1.5rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+    <h2 style="margin:0">📉 Cooling Curves Explorer</h2>
+    <div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap">
+      <div>
+        <label class="field-label">Oil Type</label>
+        <select id="sel-oil" onchange="loadCurves()">
+          <option>Sunflower</option><option>Soy</option><option>Mineral</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Steel Grade</label>
+        <select id="sel-mat" onchange="loadCurves()">
+          <option value="1045">AISI 1045</option><option value="4340">AISI 4340</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-curves">Loading chart…</div>
+    <img id="img-curves" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem"><strong style="color:var(--amber)">Reading the curves:</strong> Each line represents a quenching experiment at a different bath temperature. Higher bath temperatures result in slower overall cooling due to the reduced temperature gradient between sample and bath. The initial steep drop corresponds to the <em>nucleate boiling</em> phase where vapour bubbles maximise heat transfer, followed by a gradual <em>convection</em> phase.</p>
+</div>
+
+<!-- Distribution plots -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>📐 Feature Distributions</h2>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-dist">Loading chart…</div>
+    <img id="img-dist" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">The raw temperature histogram shows a <strong>bimodal distribution</strong> — many readings cluster near the initial austenising temperature (~850°C) and near the bath temperature, reflecting the rapid exponential decay from high to low temperatures. θ and τ are dimensionless and show a more uniform spread suitable for neural network training.</p>
+</div>
+
+<!-- Oil and material scatter -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>🛢️ Cooling Behaviour by Oil Type &amp; Steel Grade</h2>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-oil">Loading chart…</div>
+    <img id="img-oil" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">Plotting θ vs τ coloured by oil reveals that <strong style="color:#f59e0b">sunflower</strong> and <strong style="color:#22c55e">soy</strong> oils have slightly higher θ at intermediate τ compared to <strong style="color:#6366f1">mineral</strong> oil, indicating slower cooling — desirable for reducing residual stress. AISI 4340 shows markedly different θ-τ behaviour due to its alloying elements delaying martensitic transformation.</p>
+</div>
+
+<!-- Cooling rate and material -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>⚡ Cooling Rate Analysis</h2>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-rate">Loading chart…</div>
+    <img id="img-rate" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">The cooling rate profile captures the three quenching stages: <em>(1) film boiling</em> — slow initial rate as a vapour blanket insulates the surface; <em>(2) nucleate boiling</em> — peak rate as bubbles agitate the oil; <em>(3) convective cooling</em> — rate decreases as temperature approaches bath temperature. Mineral oil shows slightly higher peak cooling rates than vegetable oils.</p>
+</div>
+
+<!-- Heatmap -->
+<div class="card">
+  <h2>🌡️ Mean Temperature Heatmap — Oil × Bath Temperature</h2>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-heat">Loading chart…</div>
+    <img id="img-heat" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">The heatmap confirms that mean temperature increases monotonically with bath temperature across all oil types. Mean temperatures are very similar between sunflower and soy, while mineral oil shows slightly different thermal characteristics at higher bath temperatures.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadOverview(){
+  const d=await(await fetch('/api/eda/overview')).json();
+  const row=document.getElementById('stats-row');
+  row.innerHTML=`
+    <div class="card" style="text-align:center">
+      <div class="stat-val stat-accent">${d.total_observations.toLocaleString()}</div>
+      <div class="stat-label">Total observations</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="stat-val stat-green">${d.total_curves}</div>
+      <div class="stat-label">Cooling curves</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="stat-val stat-amber">${d.temp_min}–${d.temp_max}</div>
+      <div class="stat-label">Temperature range (°C)</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="stat-val" style="color:var(--green);font-size:1.8rem">✓ Clean</div>
+      <div class="stat-label">${d.missing_values} missing · ${d.duplicates} dups</div>
+    </div>
+  `;
+  document.getElementById('health-panel').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:.6rem;padding:.5rem 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;background:var(--bg);border-radius:8px">
+        <span style="font-size:.83rem;color:var(--muted)">Missing values</span>
+        <span class="chip chip-green">✓ ${d.missing_values} (none)</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;background:var(--bg);border-radius:8px">
+        <span style="font-size:.83rem;color:var(--muted)">Duplicate rows</span>
+        <span class="chip chip-green">✓ ${d.duplicates} removed</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;background:var(--bg);border-radius:8px">
+        <span style="font-size:.83rem;color:var(--muted)">Time range (s)</span>
+        <span style="font-size:.83rem;color:var(--text)">${d.time_min} – ${d.time_max}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;background:var(--bg);border-radius:8px">
+        <span style="font-size:.83rem;color:var(--muted)">Bath temperatures</span>
+        <span style="font-size:.83rem;color:var(--text)">${d.bath_temps.join(', ')} °C</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;background:var(--bg);border-radius:8px">
+        <span style="font-size:.83rem;color:var(--muted)">Steel grades</span>
+        <span style="font-size:.83rem;color:var(--text)">${d.materials.map(m=>'AISI '+m).join(', ')}</span>
+      </div>
+    </div>
+  `;
+}
+
+function loadCurves(){
+  loadImg('/api/eda/cooling_curves','img-curves','sp-curves',{
+    oil:document.getElementById('sel-oil').value,
+    material:document.getElementById('sel-mat').value
+  });
+}
+
+window.onload=()=>{
+  loadOverview();
+  loadCurves();
+  loadImg('/api/eda/distribution','img-dist','sp-dist');
+  loadImg('/api/eda/by_oil','img-oil','sp-oil');
+  loadImg('/api/eda/cooling_rate','img-rate','sp-rate');
+  loadImg('/api/eda/heatmap','img-heat','sp-heat');
+};
+</script>
+{% endblock %}

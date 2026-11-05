@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Vercel
+.vercel/
+
+# Office lock / temp files
+~$*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.synctex.gz
+*.fls
+*.fdb_latexmk

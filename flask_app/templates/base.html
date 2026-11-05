@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{% block title %}Metal Cooling PINN{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:        #0f172a;
+  --surface:   #1e293b;
+  --surface2:  #263144;
+  --border:    #334155;
+  --text:      #e2e8f0;
+  --muted:     #94a3b8;
+  --accent:    #6366f1;
+  --accent2:   #818cf8;
+  --green:     #22c55e;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --radius:    12px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+
+/* ── NAV ─────────────────────────────────────────────────────────────────── */
+nav{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;
+  display:flex;align-items:center;gap:0;
+  position:sticky;top:0;z-index:100;
+}
+.nav-brand{
+  font-size:.95rem;font-weight:700;color:var(--text);
+  padding:1rem 1.5rem 1rem 0;border-right:1px solid var(--border);
+  margin-right:1rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.nav-brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
+.nav-links{display:flex;gap:0;flex:1}
+.nav-links a{
+  padding:.85rem 1.1rem;font-size:.82rem;font-weight:500;
+  color:var(--muted);border-bottom:2px solid transparent;
+  transition:all .2s;white-space:nowrap;
+}
+.nav-links a:hover{color:var(--text)}
+.nav-links a.active{color:var(--accent2);border-bottom-color:var(--accent)}
+.nav-badge{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:.2rem .6rem;font-size:.72rem;
+  color:var(--muted);margin-left:auto;
+}
+
+/* ── MAIN ────────────────────────────────────────────────────────────────── */
+main{flex:1;padding:2rem;max-width:1400px;margin:0 auto;width:100%}
+
+/* ── CARDS ───────────────────────────────────────────────────────────────── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.5rem;
+}
+.card-sm{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:1rem 1.2rem;
+}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.flex{display:flex;gap:1rem;flex-wrap:wrap}
+.flex-center{display:flex;align-items:center;justify-content:center}
+
+/* ── TYPOGRAPHY ──────────────────────────────────────────────────────────── */
+h1{font-size:1.75rem;font-weight:700;color:var(--text)}
+h2{font-size:1.3rem;font-weight:600;color:var(--text);margin-bottom:.8rem}
+h3{font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.5rem}
+p{color:var(--muted);line-height:1.65;font-size:.9rem}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.82rem}
+.page-header{margin-bottom:2rem}
+.page-header .subtitle{color:var(--muted);font-size:.9rem;margin-top:.4rem}
+
+/* ── STAT BOXES ──────────────────────────────────────────────────────────── */
+.stat-val{font-size:2rem;font-weight:700;line-height:1}
+.stat-label{font-size:.75rem;color:var(--muted);margin-top:.35rem;font-weight:500}
+.stat-accent{color:var(--accent2)}
+.stat-green{color:var(--green)}
+.stat-amber{color:var(--amber)}
+.stat-red{color:var(--red)}
+
+/* ── CHIPS / BADGES ──────────────────────────────────────────────────────── */
+.chip{
+  display:inline-block;padding:.2rem .65rem;border-radius:20px;
+  font-size:.73rem;font-weight:600;
+}
+.chip-indigo{background:#312e81;color:#a5b4fc}
+.chip-green {background:#14532d;color:#86efac}
+.chip-amber {background:#713f12;color:#fcd34d}
+.chip-red   {background:#7f1d1d;color:#fca5a5}
+
+/* ── BUTTONS ─────────────────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.55rem 1.1rem;border-radius:8px;font-size:.83rem;font-weight:600;
+  cursor:pointer;border:none;transition:all .15s;
+}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--border)}
+
+/* ── SELECT / INPUT ──────────────────────────────────────────────────────── */
+select,input[type=number],input[type=range]{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:.5rem .8rem;
+  font-size:.85rem;font-family:inherit;outline:none;
+}
+select:focus,input:focus{border-color:var(--accent)}
+label.field-label{font-size:.78rem;color:var(--muted);font-weight:500;margin-bottom:.3rem;display:block}
+
+/* ── IMAGE CHARTS ────────────────────────────────────────────────────────── */
+.chart-img{width:100%;border-radius:8px;display:block}
+.chart-wrap{position:relative;min-height:200px}
+.spinner{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;color:var(--muted);
+}
+
+/* ── TABLE ───────────────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:.74rem;
+   text-transform:uppercase;letter-spacing:.06em;padding:.6rem .8rem;
+   border-bottom:1px solid var(--border)}
+td{padding:.6rem .8rem;border-bottom:1px solid #1e293b;color:var(--text)}
+tr:hover td{background:var(--surface2)}
+
+/* ── PROGRESS / DIVIDER ──────────────────────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:1.5rem 0}
+
+/* ── EQUATION BOX ────────────────────────────────────────────────────────── */
+.eq-box{
+  background:#0d1526;border:1px solid var(--border);
+  border-radius:8px;padding:.8rem 1.2rem;
+  font-family:'JetBrains Mono',monospace;font-size:.9rem;
+  color:#a5b4fc;line-height:1.6;
+}
+
+/* ── TOAST ───────────────────────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:.75rem 1.2rem;font-size:.82rem;
+  display:none;z-index:9999;color:var(--text);
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  nav{overflow-x:auto}
+  .nav-links{min-width:max-content}
+}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><span class="dot"></span>MetalCool PINN</div>
+  <div class="nav-links">
+    <a href="/"             id="nav-home"   {% if active=='home'   %}class="active"{% endif %}>🏠 Overview</a>
+    <a href="/eda"          id="nav-eda"    {% if active=='eda'    %}class="active"{% endif %}>📊 EDA</a>
+    <a href="/compare"      id="nav-cmp"    {% if active=='cmp'    %}class="active"{% endif %}>⚡ DNN vs PINN</a>
+    <a href="/results"      id="nav-res"    {% if active=='res'    %}class="active"{% endif %}>📈 Results</a>
+    <a href="/predict"      id="nav-pred"   {% if active=='pred'   %}class="active"{% endif %}>🔮 Predict</a>
+    <a href="/applications" id="nav-app"    {% if active=='app'    %}class="active"{% endif %}>🏭 Applications</a>
+  </div>
+  <div class="nav-badge">AISI 1045 &amp; 4340 · Vegetable Oils</div>
+</nav>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<div id="toast"></div>
+
+<script>
+function toast(msg,ms=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  setTimeout(()=>t.style.display='none',ms);
+}
+async function loadImg(url,imgId,spinnerId,params){
+  if(spinnerId)document.getElementById(spinnerId).style.display='flex';
+  let full=url;
+  if(params){const q=new URLSearchParams(params);full=url+'?'+q}
+  const r=await fetch(full);
+  const d=await r.json();
+  if(imgId){
+    document.getElementById(imgId).src='data:image/png;base64,'+d.image;
+    document.getElementById(imgId).style.display='block';
+  }
+  if(spinnerId)document.getElementById(spinnerId).style.display='none';
+  return d;
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

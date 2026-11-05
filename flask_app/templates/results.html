@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Results — Metal Cooling{% endblock %}
+{% set active = 'res' %}
+{% block content %}
+<div class="page-header">
+  <h1>📈 Result Analysis</h1>
+  <p class="subtitle">Detailed evaluation of PINN and DNN predictions on held-out experimental curves</p>
+</div>
+
+<!-- Curve selector -->
+<div class="card" style="margin-bottom:1.5rem">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+    <h2 style="margin:0">🔬 Per-Curve Analysis</h2>
+    <div>
+      <label class="field-label">Select held-out curve</label>
+      <select id="sel-curve" onchange="loadCurve()" style="min-width:220px">
+        <option value="">Loading…</option>
+      </select>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-curve">Select a curve above</div>
+    <img id="img-curve" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">
+    <strong style="color:var(--green)">Green</strong> = experimental measurement (ground truth) ·
+    <strong style="color:#818cf8">Purple dashes</strong> = PINN prediction ·
+    <strong style="color:#f87171">Red dots</strong> = DNN prediction.
+    The right panel shows prediction error (positive = over-prediction, negative = under-prediction).
+  </p>
+</div>
+
+<!-- Error distribution -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>📊 Global Error Distribution</h2>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-err">Loading…</div>
+    <img id="img-err" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">An ideal predictor centres its error distribution at 0 with small spread. The PINN's physics constraint tends to produce a tighter, less skewed error distribution than the pure DNN, particularly eliminating systematic over/under-prediction at extreme temperatures.</p>
+</div>
+
+<div class="grid-2" style="margin-bottom:1.5rem">
+  <!-- Per-oil MAE -->
+  <div class="card">
+    <h2>🛢️ MAE per Oil Type</h2>
+    <div class="chart-wrap">
+      <div class="spinner" id="sp-oil">Loading…</div>
+      <img id="img-oil" class="chart-img" style="display:none"/>
+    </div>
+    <p style="margin-top:.8rem;font-size:.82rem">Mineral oil curves tend to have the lowest prediction error because their cooling kinetics are simpler (single-phase fluid, well-defined convection). Vegetable oils exhibit more complex nucleate boiling behaviour that is harder to model.</p>
+  </div>
+
+  <!-- Physics residual -->
+  <div class="card">
+    <h2>⚛️ Physics Residual — dθ/dτ + β·θ</h2>
+    <div class="chart-wrap">
+      <div class="spinner" id="sp-phys">Loading…</div>
+      <img id="img-phys" class="chart-img" style="display:none"/>
+    </div>
+    <p style="margin-top:.8rem;font-size:.82rem">An ideal PINN would produce a residual of exactly 0 everywhere, meaning the prediction perfectly satisfies Newton's cooling equation. The scatter seen here reflects the degree to which experimental data deviates from the simple exponential decay model — this is physically informative rather than a failure mode.</p>
+  </div>
+</div>
+
+<!-- Summary interpretation -->
+<div class="card">
+  <h2>🧾 Result Interpretation &amp; Key Findings</h2>
+  <div class="grid-3" style="margin-top:.8rem">
+    <div class="card-sm">
+      <h3 style="color:var(--green);margin-bottom:.5rem">✅ PINN Advantages</h3>
+      <ul style="font-size:.82rem;color:var(--muted);line-height:1.9;padding-left:1.1rem">
+        <li>Physics-consistent predictions</li>
+        <li>Learns interpretable β coefficient</li>
+        <li>Better generalisation to unseen conditions</li>
+        <li>Enforces θ(τ=0) = 1 boundary condition</li>
+        <li>Tighter error distribution near zero</li>
+        <li>No thermodynamically absurd predictions</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <h3 style="color:var(--amber);margin-bottom:.5rem">⚠️ DNN Limitations</h3>
+      <ul style="font-size:.82rem;color:var(--muted);line-height:1.9;padding-left:1.1rem">
+        <li>May violate energy conservation</li>
+        <li>No physical interpretability</li>
+        <li>Requires more data for same accuracy</li>
+        <li>Can predict rising temperatures during quench</li>
+        <li>No learned physical parameter</li>
+        <li>Extrapolation to new conditions is risky</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <h3 style="color:var(--accent2);margin-bottom:.5rem">📐 Dataset-Specific Observations</h3>
+      <ul style="font-size:.82rem;color:var(--muted);line-height:1.9;padding-left:1.1rem">
+        <li>AISI 4340 harder to predict (phase transforms)</li>
+        <li>Higher bath temps → smaller temperature gradients</li>
+        <li>Sunflower &amp; soy behave similarly to each other</li>
+        <li>Initial ~10 s most nonlinear (film boiling)</li>
+        <li>Prediction accuracy improves at τ &gt; 0.3</li>
+        <li>80°C bath curves easiest to predict</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadCurveList(){
+  const d=await(await fetch('/api/results/curves')).json();
+  const sel=document.getElementById('sel-curve');
+  sel.innerHTML=d.map(c=>`<option value="${c.curve_id}">${c.sheet} (${c.oil} | AISI ${c.material} | ${c.bath}°C bath)</option>`).join('');
+  loadCurve();
+}
+
+function loadCurve(){
+  const cid=document.getElementById('sel-curve').value;
+  if(!cid)return;
+  loadImg('/api/results/plot_curve/'+cid,'img-curve','sp-curve');
+}
+
+window.onload=()=>{
+  loadCurveList();
+  loadImg('/api/results/error_dist','img-err','sp-err');
+  loadImg('/api/results/per_oil','img-oil','sp-oil');
+  loadImg('/api/results/physics_residual_plot','img-phys','sp-phys');
+};
+</script>
+{% endblock %}

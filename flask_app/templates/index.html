@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Overview — Metal Cooling PINN{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>🔬 Metal Quenching &amp; Cooling Analysis</h1>
+  <p class="subtitle">Physics-Informed Neural Network (PINN) for predicting steel cooling behaviour during quenching in vegetable oils</p>
+</div>
+
+<!-- Dataset info banner -->
+<div class="card" style="background:linear-gradient(135deg,#1a1040 0%,#0f172a 100%);border-color:#4f46e5;margin-bottom:1.5rem">
+  <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start">
+    <div style="flex:1;min-width:280px">
+      <div class="label" style="color:#818cf8;margin-bottom:.6rem">📂 Dataset</div>
+      <h2 style="margin-bottom:.4rem;font-size:1.1rem">Cooling Curve Data — Quenching in Vegetable Oils</h2>
+      <p style="font-size:.83rem">DOI: 10.17632/ccrkcx7hkx.2 · Published April 2018 · Version 2</p>
+      <p style="font-size:.83rem;margin-top:.4rem">Contributors: Pedro Brito, Pedro Ramos, Leandro Resende, Douglas de Faria</p>
+    </div>
+    <div style="flex:1;min-width:280px">
+      <div class="label" style="color:#818cf8;margin-bottom:.6rem">⚗️ Experimental Setup</div>
+      <p style="font-size:.83rem">AISI 1045 and AISI 4340 steels quenched in <strong style="color:#f59e0b">sunflower</strong>, <strong style="color:#22c55e">soybean</strong> and <strong style="color:#6366f1">mineral</strong> oils at bath temperatures of 25, 40, 60 and 80 °C. Temperature monitored at sample centre.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Key stats row -->
+<div class="grid-4" style="margin-bottom:1.5rem">
+  <div class="card" style="text-align:center">
+    <div class="stat-val stat-accent">5,011</div>
+    <div class="stat-label">Total observations</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="stat-val stat-green">24</div>
+    <div class="stat-label">Experimental curves</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="stat-val stat-amber">3</div>
+    <div class="stat-label">Quenchant oils</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="stat-val" style="color:#f97316">2</div>
+    <div class="stat-label">Steel grades</div>
+  </div>
+</div>
+
+<!-- Physics section -->
+<div class="grid-2" style="margin-bottom:1.5rem">
+  <div class="card">
+    <h2>⚛️ Governing Physics</h2>
+    <p style="margin-bottom:1rem">The PINN enforces Newton's effective cooling law as a hard constraint during training:</p>
+    <div class="eq-box">
+      dθ/dτ + β · θ = 0
+      <br><br>
+      θ = (T − T_bath) / (T₀ − T_bath)   [dimensionless temperature]
+      <br>
+      τ = t / t_max                         [dimensionless time]
+      <br>
+      β                                     [learnable cooling coefficient]
+    </div>
+    <p style="margin-top:1rem;font-size:.82rem">The analytical solution is <strong style="color:#a5b4fc">θ(τ) = e^(−βτ)</strong>. The PINN learns β from data while simultaneously fitting the cooling curve, enforcing physical consistency throughout the domain.</p>
+  </div>
+  <div class="card">
+    <h2>🗺️ Dashboard Pages</h2>
+    <div style="display:flex;flex-direction:column;gap:.7rem;margin-top:.5rem">
+      <a href="/eda" style="display:flex;gap:.8rem;align-items:flex-start;padding:.8rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem">📊</span>
+        <div><div style="font-weight:600;font-size:.9rem;margin-bottom:.15rem">Page 1 — Exploratory Data Analysis</div><p style="font-size:.78rem">Dataset overview, cooling curves, distributions, oil &amp; material comparisons</p></div>
+      </a>
+      <a href="/compare" style="display:flex;gap:.8rem;align-items:flex-start;padding:.8rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem">⚡</span>
+        <div><div style="font-weight:600;font-size:.9rem;margin-bottom:.15rem">Page 2 — DNN vs PINN</div><p style="font-size:.78rem">Architecture comparison, training loss curves, scatter plots, metric tables</p></div>
+      </a>
+      <a href="/results" style="display:flex;gap:.8rem;align-items:flex-start;padding:.8rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem">📈</span>
+        <div><div style="font-weight:600;font-size:.9rem;margin-bottom:.15rem">Page 3 — Result Analysis</div><p style="font-size:.78rem">Per-curve overlays, error distributions, physics residual, oil-wise breakdown</p></div>
+      </a>
+      <a href="/predict" style="display:flex;gap:.8rem;align-items:flex-start;padding:.8rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem">🔮</span>
+        <div><div style="font-weight:600;font-size:.9rem;margin-bottom:.15rem">Page 4 — Live Prediction</div><p style="font-size:.78rem">Interactive predictor using trained PINN model with custom inputs</p></div>
+      </a>
+      <a href="/applications" style="display:flex;gap:.8rem;align-items:flex-start;padding:.8rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem">🏭</span>
+        <div><div style="font-weight:600;font-size:.9rem;margin-bottom:.15rem">Page 5 — Applications</div><p style="font-size:.78rem">Industrial relevance, residual stress, sustainability, future directions</p></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Research highlights -->
+<div class="card">
+  <h2>📰 Research Highlights</h2>
+  <div class="grid-3" style="margin-top:.8rem">
+    <div class="card-sm">
+      <div class="chip chip-green" style="margin-bottom:.5rem">✓ Cooling Behaviour</div>
+      <p style="font-size:.82rem">Cooling curves were significantly influenced by steel composition, particularly the phase transformations occurring during rapid quenching of AISI 4340 alloy steel.</p>
+    </div>
+    <div class="card-sm">
+      <div class="chip chip-amber" style="margin-bottom:.5rem">✓ Vegetable Oils</div>
+      <p style="font-size:.82rem">Sunflower and soybean oils exhibited lower maximum cooling rates compared to mineral oil, reducing thermal shock while achieving comparable hardening depth in 4340 steel.</p>
+    </div>
+    <div class="card-sm">
+      <div class="chip chip-indigo" style="margin-bottom:.5rem">✓ Residual Stress</div>
+      <p style="font-size:.82rem">Vegetable oils produced smaller magnitude residual stresses, which is beneficial for fatigue life in high-strength components such as gears, springs and shafts.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

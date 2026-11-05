@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Applications — Metal Cooling{% endblock %}
+{% set active = 'app' %}
+{% block content %}
+<div class="page-header">
+  <h1>🏭 Applications &amp; Industrial Relevance</h1>
+  <p class="subtitle">How physics-informed machine learning transforms steel heat treatment, quality control and sustainable manufacturing</p>
+</div>
+
+<!-- Hero card -->
+<div class="card" style="background:linear-gradient(135deg,#0c1a3a 0%,#0f172a 100%);border-color:#3b82f6;margin-bottom:1.5rem">
+  <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center">
+    <div style="flex:1;min-width:260px">
+      <div class="label" style="color:#60a5fa;margin-bottom:.5rem">Core Value Proposition</div>
+      <h2 style="font-size:1.4rem;margin-bottom:.7rem">From Lab Data → Industrial Intelligence</h2>
+      <p>This PINN framework converts 24 experimental quenching curves into a <strong style="color:#93c5fd">generalised predictive model</strong> that respects thermodynamic laws, enabling virtual process design without expensive physical trials.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem;min-width:220px">
+      <div style="display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;background:#1e3a5f;border-radius:8px;border:1px solid #3b82f6">
+        <span style="font-size:1.5rem">⏱️</span>
+        <div><div style="font-size:.85rem;font-weight:600">90% faster</div><div style="font-size:.76rem;color:#93c5fd">Process parameter exploration</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;background:#1a3a20;border-radius:8px;border:1px solid #22c55e">
+        <span style="font-size:1.5rem">🌱</span>
+        <div><div style="font-size:.85rem;font-weight:600">Eco-friendly</div><div style="font-size:.76rem;color:#86efac">Vegetable oil process optimisation</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;background:#2d1a40;border-radius:8px;border:1px solid #8b5cf6">
+        <span style="font-size:1.5rem">🎯</span>
+        <div><div style="font-size:.85rem;font-weight:600">Physics-safe</div><div style="font-size:.76rem;color:#c4b5fd">Thermodynamically consistent output</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Application domains grid -->
+<div class="grid-3" style="margin-bottom:1.5rem">
+  <div class="card" style="border-top:3px solid #22c55e">
+    <div style="font-size:2rem;margin-bottom:.6rem">🏗️</div>
+    <h3 style="margin-bottom:.5rem">Heat Treatment Process Design</h3>
+    <p style="font-size:.83rem">Engineers can simulate the complete cooling curve for any oil/steel/bath combination before committing to a physical trial. This enables rapid screening of new bio-based quenchants and bath temperature protocols to meet target hardness profiles.</p>
+    <div class="divider"></div>
+    <ul style="font-size:.8rem;color:var(--muted);padding-left:1rem;line-height:1.9">
+      <li>Virtual quenching experiment design</li>
+      <li>Bath temperature optimisation</li>
+      <li>New oil candidate screening</li>
+      <li>Cycle time reduction</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-top:3px solid #f59e0b">
+    <div style="font-size:2rem;margin-bottom:.6rem">🔧</div>
+    <h3 style="margin-bottom:.5rem">Residual Stress Prediction</h3>
+    <p style="font-size:.83rem">Cooling rate directly determines residual stress state. Faster cooling → higher tensile surface stresses → reduced fatigue life. The cooling curve model feeds into residual stress calculations for gears, shafts, springs and other safety-critical components.</p>
+    <div class="divider"></div>
+    <ul style="font-size:.8rem;color:var(--muted);padding-left:1rem;line-height:1.9">
+      <li>Fatigue life prediction</li>
+      <li>Distortion and cracking risk assessment</li>
+      <li>Component service life extension</li>
+      <li>Non-destructive stress estimation</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-top:3px solid #6366f1">
+    <div style="font-size:2rem;margin-bottom:.6rem">⚙️</div>
+    <h3 style="margin-bottom:.5rem">Digital Twin Integration</h3>
+    <p style="font-size:.83rem">Embed the PINN as a real-time cooling sub-model within a Digital Twin of the heat treatment furnace. Live sensor data updates the model state; the twin predicts final microstructure and mechanical properties without waiting for lab measurements.</p>
+    <div class="divider"></div>
+    <ul style="font-size:.8rem;color:var(--muted);padding-left:1rem;line-height:1.9">
+      <li>Real-time cooling curve monitoring</li>
+      <li>Alarm on deviation from target curve</li>
+      <li>Batch-to-batch consistency control</li>
+      <li>Predictive maintenance of quench tanks</li>
+    </ul>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:1.5rem">
+  <div class="card">
+    <h2>🌿 Sustainability &amp; Environmental Impact</h2>
+    <p style="font-size:.83rem;margin-bottom:1rem">The research directly supports the transition away from petroleum-derived quenching oils — a significant source of industrial hazardous waste. Key sustainability advantages of vegetable oils quantified by this model:</p>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div style="padding:.7rem 1rem;background:var(--bg);border-radius:8px;border-left:3px solid var(--green)">
+        <div style="font-size:.83rem;font-weight:600;margin-bottom:.2rem">✅ Biodegradable &amp; Renewable</div>
+        <p style="font-size:.79rem">Soybean and sunflower oils decompose naturally; minimal soil and water contamination risk vs mineral oils requiring hazardous waste disposal.</p>
+      </div>
+      <div style="padding:.7rem 1rem;background:var(--bg);border-radius:8px;border-left:3px solid var(--amber)">
+        <div style="font-size:.83rem;font-weight:600;margin-bottom:.2rem">✅ Lower Residual Stress</div>
+        <p style="font-size:.79rem">The gentler cooling profile of vegetable oils produces smaller magnitude residual stresses, potentially extending component service life and reducing scrap rates.</p>
+      </div>
+      <div style="padding:.7rem 1rem;background:var(--bg);border-radius:8px;border-left:3px solid var(--accent)">
+        <div style="font-size:.83rem;font-weight:600;margin-bottom:.2rem">✅ Higher Flash Point</div>
+        <p style="font-size:.79rem">Vegetable oils have a higher fire point than mineral oils, reducing fire and explosion risk in production environments.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📐 Learned Physics: The β Parameter</h2>
+    <p style="font-size:.83rem;margin-bottom:1rem">Unlike a black-box DNN, the PINN extracts the <strong style="color:#a5b4fc">effective cooling coefficient β</strong> — a single number summarising the overall heat-transfer efficiency of the quenchant/steel system. This has direct practical value:</p>
+    <div class="eq-box" style="margin-bottom:1rem">
+      T(t) ≈ T_bath + (T₀ − T_bath) · e^(−β · τ)
+      <br><br>
+      Higher β → faster effective cooling → harder martensite
+      Lower  β → gentler cooling  → lower residual stress
+    </div>
+    <table>
+      <thead><tr><th>β range</th><th>Implication</th><th>Suitable for</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">β &gt; 4</td><td>Aggressive quench</td><td>High-carbon steels</td></tr>
+        <tr><td class="mono">β 2–4</td><td>Moderate quench</td><td>Alloy steels (4340)</td></tr>
+        <tr><td class="mono">β &lt; 2</td><td>Gentle quench</td><td>Distortion-sensitive parts</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Industry sectors -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>🏭 Target Industry Sectors</h2>
+  <div class="grid-4">
+    <div class="card-sm" style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">⚙️</div>
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:.3rem">Automotive</div>
+      <p style="font-size:.78rem">Gears, crankshafts, camshafts, suspension springs — all require controlled quenching to balance hardness and residual stress.</p>
+    </div>
+    <div class="card-sm" style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">✈️</div>
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:.3rem">Aerospace</div>
+      <p style="font-size:.78rem">Landing gear components and structural fasteners require tight control over metallurgical state and surface stress to meet fatigue certification.</p>
+    </div>
+    <div class="card-sm" style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">⚒️</div>
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:.3rem">Tooling</div>
+      <p style="font-size:.78rem">Cutting tools, dies and moulds need precise hardness gradients achievable by tuning bath temperature and quenchant type.</p>
+    </div>
+    <div class="card-sm" style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">🏗️</div>
+      <div style="font-weight:600;font-size:.88rem;margin-bottom:.3rem">Heavy Industry</div>
+      <p style="font-size:.78rem">Large shafts, roll mills and pressure vessels where quench distortion must be predicted and minimised before heat treatment.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Future work -->
+<div class="card">
+  <h2>🚀 Future Directions</h2>
+  <div class="grid-3">
+    <div class="card-sm">
+      <div class="chip chip-indigo" style="margin-bottom:.6rem">Extension 1</div>
+      <h3 style="margin-bottom:.4rem;font-size:.9rem">Multi-Phase PDE PINN</h3>
+      <p style="font-size:.8rem">Replace the simple ODE with the full heat conduction PDE incorporating temperature-dependent thermal conductivity and phase transformation latent heat, enabling spatial temperature gradients to be modelled.</p>
+    </div>
+    <div class="card-sm">
+      <div class="chip chip-green" style="margin-bottom:.6rem">Extension 2</div>
+      <h3 style="margin-bottom:.4rem;font-size:.9rem">Residual Stress Coupling</h3>
+      <p style="font-size:.8rem">Couple the cooling PINN with a thermo-mechanical model to directly predict residual stress state from quenching parameters — eliminating the need for expensive X-ray diffraction measurements.</p>
+    </div>
+    <div class="card-sm">
+      <div class="chip chip-amber" style="margin-bottom:.6rem">Extension 3</div>
+      <h3 style="margin-bottom:.4rem;font-size:.9rem">Online Adaptive Learning</h3>
+      <p style="font-size:.8rem">Deploy PINN in a production heat treatment line with in-situ thermocouple feedback. Continuously update β and model weights as new batches are processed, adapting to oil aging, bath contamination and seasonal temperature variations.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

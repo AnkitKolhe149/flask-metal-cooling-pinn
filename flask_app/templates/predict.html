@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Predict — Metal Cooling{% endblock %}
+{% set active = 'pred' %}
+{% block content %}
+<div class="page-header">
+  <h1>🔮 Live PINN Prediction</h1>
+  <p class="subtitle">Run the trained model with custom quenching parameters and compare PINN, DNN and analytical Newton's law predictions</p>
+</div>
+
+<div class="grid-2" style="margin-bottom:1.5rem;align-items:start">
+  <!-- Controls -->
+  <div class="card">
+    <h2 style="margin-bottom:1.2rem">⚙️ Quenching Parameters</h2>
+
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div>
+        <label class="field-label">Steel Grade</label>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-primary" id="btn-1045" onclick="setMat('1045')">AISI 1045</button>
+          <button class="btn btn-ghost"   id="btn-4340" onclick="setMat('4340')">AISI 4340</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label">Quenchant Oil</label>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btn-sun" onclick="setOil('Sunflower')" style="background:#92400e;border-color:#f59e0b">☀️ Sunflower</button>
+          <button class="btn btn-ghost"   id="btn-soy" onclick="setOil('Soy')">🌱 Soy</button>
+          <button class="btn btn-ghost"   id="btn-min" onclick="setOil('Mineral')">⛽ Mineral</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label">Bath Temperature: <span id="lbl-bath">25</span> °C</label>
+        <input type="range" id="sl-bath" min="25" max="80" step="5" value="25"
+               oninput="document.getElementById('lbl-bath').textContent=this.value"
+               style="width:100%;height:4px;accent-color:var(--accent)"/>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:.2rem">
+          <span>25°C</span><span>40°C</span><span>60°C</span><span>80°C</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label">Initial Temperature T₀: <span id="lbl-t0">850</span> °C</label>
+        <input type="range" id="sl-t0" min="750" max="950" step="10" value="850"
+               oninput="document.getElementById('lbl-t0').textContent=this.value"
+               style="width:100%;height:4px;accent-color:var(--accent)"/>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:.2rem">
+          <span>750°C</span><span>850°C</span><span>950°C</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem">
+      <button class="btn btn-primary" onclick="runPredict()" style="width:100%;justify-content:center;padding:.7rem">
+        ▶ Run Prediction
+      </button>
+    </div>
+
+    <!-- Model info -->
+    <div class="divider"></div>
+    <div id="model-info">
+      <div class="label" style="margin-bottom:.6rem">Model Status</div>
+      <div style="display:flex;align-items:center;gap:.5rem;font-size:.83rem">
+        <div style="width:8px;height:8px;background:var(--green);border-radius:50%"></div>
+        <span style="color:var(--green)">PINN loaded</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;margin-top:.3rem">
+        <div style="width:8px;height:8px;background:var(--green);border-radius:50%"></div>
+        <span style="color:var(--green)">DNN loaded</span>
+      </div>
+      <div id="beta-display" style="margin-top:.8rem;font-size:.83rem;color:var(--muted)">
+        Learned β: <em>run a prediction to see</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="card">
+    <h2 style="margin-bottom:1rem">📉 Predicted Cooling Curve</h2>
+    <div class="chart-wrap" style="min-height:320px">
+      <div class="spinner" id="sp-pred" style="display:flex">
+        <div style="text-align:center;color:var(--muted)">
+          <div style="font-size:2rem;margin-bottom:.5rem">🔮</div>
+          <div>Configure parameters and click Run Prediction</div>
+        </div>
+      </div>
+      <img id="img-pred" class="chart-img" style="display:none"/>
+    </div>
+  </div>
+</div>
+
+<!-- Prediction data table -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>📋 Prediction Summary</h2>
+  <div id="pred-summary">
+    <p style="font-size:.85rem;color:var(--muted)">Run a prediction to see the summary table.</p>
+  </div>
+</div>
+
+<!-- Method explanation -->
+<div class="card">
+  <h2>🧮 How the Predictions are Generated</h2>
+  <div class="grid-3">
+    <div class="card-sm">
+      <div class="chip chip-indigo" style="margin-bottom:.6rem">⚛️ PINN</div>
+      <p style="font-size:.82rem">The trained PINN network takes [τ, material, oil, T_bath, T₀] as input and predicts θ. The θ is back-converted to physical temperature: T = T_bath + θ·(T₀ − T_bath). The PINN enforces the ODE constraint during training so predictions satisfy Newton's cooling even between training points.</p>
+    </div>
+    <div class="card-sm">
+      <div class="chip chip-red" style="margin-bottom:.6rem">🤖 DNN</div>
+      <p style="font-size:.82rem">Identical input/output structure to PINN but no physics term in loss. The DNN may deviate from the exponential cooling profile, especially near τ = 0 (film boiling phase) or for unseen oil/temperature combinations outside the training distribution.</p>
+    </div>
+    <div class="card-sm">
+      <div class="chip chip-amber" style="margin-bottom:.6rem">📐 Analytical</div>
+      <p style="font-size:.82rem">Using the PINN's learned β: T(τ) = T_bath + (T₀ − T_bath)·e^(−β·τ). This is the exact solution to Newton's cooling law and serves as a physics baseline. When the PINN and analytical curves align closely, it confirms the physics constraint is being respected.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selMat='1045', selOil='Sunflower';
+
+function setMat(m){
+  selMat=m;
+  document.getElementById('btn-1045').className='btn '+(m=='1045'?'btn-primary':'btn-ghost');
+  document.getElementById('btn-4340').className='btn '+(m=='4340'?'btn-primary':'btn-ghost');
+}
+function setOil(o){
+  selOil=o;
+  const styles={Sunflower:'background:#92400e;border-color:#f59e0b',Soy:'background:var(--accent);',Mineral:'background:#312e81;'};
+  ['sun','soy','min'].forEach((id,i)=>{
+    const names=['Sunflower','Soy','Mineral'];
+    const btn=document.getElementById('btn-'+id);
+    btn.className='btn '+(o==names[i]?'btn-primary':'btn-ghost');
+    if(o==names[i]) btn.style.cssText=styles[o]; else btn.style.cssText='';
+  });
+}
+
+async function runPredict(){
+  const body={
+    oil: selOil, material: selMat,
+    bath: +document.getElementById('sl-bath').value,
+    T0:   +document.getElementById('sl-t0').value,
+    n_points: 150,
+  };
+  document.getElementById('sp-pred').style.display='flex';
+  document.getElementById('img-pred').style.display='none';
+  document.getElementById('sp-pred').innerHTML='<div style="color:var(--muted)">Running model…</div>';
+
+  const r=await fetch('/api/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
+
+  document.getElementById('img-pred').src='data:image/png;base64,'+d.image;
+  document.getElementById('img-pred').style.display='block';
+  document.getElementById('sp-pred').style.display='none';
+
+  document.getElementById('beta-display').innerHTML=
+    `Learned β: <strong style="color:var(--accent2)">${d.beta}</strong> (effective cooling rate)`;
+
+  // Summary table
+  const tau_sample=[0,0.1,0.2,0.3,0.5,0.7,1.0];
+  const row=(label,arr,col)=>tau_sample.map(t=>{
+    const i=Math.round(t*(d.tau.length-1));
+    return `<td class="mono" style="color:${col}">${arr[i].toFixed(1)}</td>`;
+  }).join('');
+
+  document.getElementById('pred-summary').innerHTML=`
+    <div style="margin-bottom:.8rem;display:flex;gap:.8rem;flex-wrap:wrap">
+      <span class="chip chip-indigo">Oil: ${selOil}</span>
+      <span class="chip chip-red">AISI ${selMat}</span>
+      <span class="chip chip-amber">Bath: ${body.bath}°C</span>
+      <span class="chip chip-green">T₀: ${body.T0}°C</span>
+      <span class="chip chip-indigo">β: ${d.beta}</span>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>τ (norm. time)</th>
+          ${tau_sample.map(t=>`<th class="mono">${t}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🟣 PINN (°C)</td>${row('PINN',d.pinn,'#818cf8')}
+        </tr>
+        <tr>
+          <td>🔴 DNN (°C)</td>${row('DNN',d.dnn,'#f87171')}
+        </tr>
+        <tr>
+          <td>🟡 Analytical (°C)</td>${row('Analytical',d.analytical,'#fcd34d')}
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  `;
+}
+</script>
+{% endblock %}

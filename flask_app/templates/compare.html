@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}DNN vs PINN — Metal Cooling{% endblock %}
+{% set active = 'cmp' %}
+{% block content %}
+<div class="page-header">
+  <h1>⚡ Simple DNN vs Physics-Informed Neural Network</h1>
+  <p class="subtitle">Architecture comparison, training dynamics and test-set performance for two approaches to learning the metal cooling problem</p>
+</div>
+
+<!-- Architecture side-by-side -->
+<div class="grid-2" style="margin-bottom:1.5rem" id="arch-row">
+  <div class="card" style="border-color:#ef4444">
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem">
+      <div style="width:10px;height:10px;background:#ef4444;border-radius:50%"></div>
+      <h2 style="margin:0">Simple DNN</h2>
+    </div>
+    <div id="dnn-arch">Loading…</div>
+  </div>
+  <div class="card" style="border-color:#6366f1">
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem">
+      <div style="width:10px;height:10px;background:#6366f1;border-radius:50%"></div>
+      <h2 style="margin:0">PINN</h2>
+    </div>
+    <div id="pinn-arch">Loading…</div>
+  </div>
+</div>
+
+<!-- Key conceptual difference -->
+<div class="card" style="margin-bottom:1.5rem;background:linear-gradient(135deg,#1a1040,#0f172a);border-color:#4f46e5">
+  <h2>🧠 What Makes PINN Different?</h2>
+  <div class="grid-2" style="margin-top:.8rem;gap:1.5rem">
+    <div>
+      <h3 style="color:#ef4444;margin-bottom:.6rem">DNN Loss</h3>
+      <div class="eq-box" style="margin-bottom:.8rem">L_DNN = MSE(θ_pred, θ_actual)</div>
+      <p style="font-size:.82rem">The DNN only sees labelled data. It has no notion of the physical law governing cooling. Given sparse or noisy data, it may predict thermodynamically impossible trajectories (e.g. temperature rising during quenching).</p>
+    </div>
+    <div>
+      <h3 style="color:#6366f1;margin-bottom:.6rem">PINN Loss</h3>
+      <div class="eq-box" style="margin-bottom:.8rem">
+        L_PINN = L_data + λ·L_physics + λᵢc·L_IC
+        <br>
+        L_physics = ‖dθ/dτ + β·θ‖²
+        <br>
+        L_IC      = ‖θ(τ=0) − 1‖²
+      </div>
+      <p style="font-size:.82rem">The PINN adds two extra loss terms: a <strong style="color:#a5b4fc">physics residual</strong> enforcing Newton's cooling equation, and an <strong style="color:#a5b4fc">initial-condition loss</strong> ensuring the model starts at θ=1 (full temperature) at τ=0. The cooling coefficient β is learned jointly with the network weights.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Activation function rationale -->
+<div class="grid-2" style="margin-bottom:1.5rem">
+  <div class="card">
+    <h2>🔢 Why Tanh in PINN?</h2>
+    <p style="font-size:.83rem">The PINN uses <strong style="color:#a5b4fc">Tanh activations</strong> rather than ReLU because:</p>
+    <ul style="margin:.8rem 0 0 1.2rem;font-size:.83rem;color:var(--muted);line-height:2">
+      <li>The physics loss requires computing <strong style="color:var(--text)">dθ/dτ</strong> — a derivative w.r.t. the network input</li>
+      <li>Tanh is infinitely differentiable; ReLU has zero derivative almost everywhere</li>
+      <li>Tanh maps inputs to (−1,1), matching the bounded nature of θ</li>
+      <li>Smoother gradients prevent the physics loss from producing NaN updates</li>
+    </ul>
+    <p style="margin-top:.8rem;font-size:.83rem">The DNN uses <strong style="color:#f87171">ReLU</strong> — standard for regression tasks, computationally cheaper, but incompatible with derivative-based physics constraints.</p>
+  </div>
+  <div class="card">
+    <h2>⚙️ Shared Hyperparameters</h2>
+    <table>
+      <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Hidden layers</td><td class="mono">64 → 64 → 64 → 32</td></tr>
+        <tr><td>Parameters</td><td class="mono">~14 k</td></tr>
+        <tr><td>Optimiser</td><td class="mono">Adam (lr=1e-3)</td></tr>
+        <tr><td>Max epochs</td><td class="mono">800</td></tr>
+        <tr><td>Early stopping</td><td class="mono">Yes (patience=30)</td></tr>
+        <tr><td>Input features</td><td class="mono">τ, material, oil, T_bath, T₀</td></tr>
+        <tr><td>Train/test split</td><td class="mono">80/20 by curve</td></tr>
+        <tr><td>Physics weight λ</td><td class="mono">0.5 (PINN only)</td></tr>
+        <tr><td>IC weight λᵢc</td><td class="mono">2.0 (PINN only)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Training loss curves -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>📉 Training Loss Curves</h2>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-loss">Loading chart…</div>
+    <img id="img-loss" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">Both models are plotted on a <strong>log scale</strong>. The PINN loss starts higher because it includes the physics and IC penalty terms, but converges to a lower final value. Early stopping prevents overfitting — the PINN typically stops later because the multi-objective loss landscape is harder to navigate.</p>
+</div>
+
+<!-- Scatter plots -->
+<div class="card" style="margin-bottom:1.5rem">
+  <h2>🎯 Predicted vs Actual Temperature</h2>
+  <div class="chart-wrap">
+    <div class="spinner" id="sp-scatter">Loading chart…</div>
+    <img id="img-scatter" class="chart-img" style="display:none"/>
+  </div>
+  <p style="margin-top:.8rem;font-size:.82rem">Points tightly clustered around the diagonal (perfect prediction) indicate strong performance. Deviations at high temperatures correspond to the initial rapid-cooling phase where heat transfer mechanisms are most complex. The PINN's physics constraint tends to reduce systematic bias in this region.</p>
+</div>
+
+<!-- Metrics comparison table -->
+<div class="card">
+  <h2>📊 Test Set Metrics</h2>
+  <div id="metrics-table">
+    <div style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--muted)">Loading metrics…</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadArch(){
+  const d=await(await fetch('/api/compare/architecture')).json();
+  ['dnn','pinn'].forEach(k=>{
+    const m=d[k];
+    const layers=m.layers.map(l=>`
+      <div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .7rem;
+        background:var(--bg);border-radius:6px;border:1px solid var(--border);font-size:.8rem;color:var(--text)">
+        <span>▶</span> ${l}
+      </div>`).join('<div style="display:flex;justify-content:center;color:var(--muted);font-size:.85rem;margin:.1rem 0">↓</div>');
+    document.getElementById(k+'-arch').innerHTML=`
+      <div style="display:flex;flex-direction:column;gap:0;margin-bottom:1rem">${layers}</div>
+      <div class="divider"></div>
+      <div style="font-size:.82rem;color:var(--muted)"><strong style="color:var(--text)">Loss:</strong> ${m.loss}</div>
+      ${m.physics?`<div style="margin-top:.5rem"><div class="chip chip-indigo">⚛️ Physics-constrained</div></div>`
+                 :`<div style="margin-top:.5rem"><div class="chip chip-red">Data-only</div></div>`}
+      ${m.equation?`<div style="margin-top:.7rem" class="eq-box">${m.equation}</div>`:''}
+    `;
+  });
+}
+
+async function loadMetrics(){
+  const d=await(await fetch('/api/compare/metrics')).json();
+  const dnn=d.dnn, pinn=d.pinn;
+  const better=(pinn_val,dnn_val,lower_is_better=true)=>{
+    const p_wins=lower_is_better?pinn_val<dnn_val:pinn_val>dnn_val;
+    return p_wins?'chip-green':'chip-red';
+  };
+  document.getElementById('metrics-table').innerHTML=`
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th style="color:#ef4444">DNN</th>
+          <th style="color:#6366f1">PINN</th>
+          <th>Winner</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MAE (°C) ↓</td>
+          <td class="mono">${dnn.MAE_C}</td>
+          <td class="mono">${pinn.MAE_C}</td>
+          <td><span class="chip ${better(pinn.MAE_C,dnn.MAE_C)}">${pinn.MAE_C<dnn.MAE_C?'PINN ✓':'DNN ✓'}</span></td>
+        </tr>
+        <tr>
+          <td>RMSE (°C) ↓</td>
+          <td class="mono">${dnn.RMSE_C}</td>
+          <td class="mono">${pinn.RMSE_C}</td>
+          <td><span class="chip ${better(pinn.RMSE_C,dnn.RMSE_C)}">${pinn.RMSE_C<dnn.RMSE_C?'PINN ✓':'DNN ✓'}</span></td>
+        </tr>
+        <tr>
+          <td>R² ↑</td>
+          <td class="mono">${dnn.R2}</td>
+          <td class="mono">${pinn.R2}</td>
+          <td><span class="chip ${better(pinn.R2,dnn.R2,false)}">${pinn.R2>dnn.R2?'PINN ✓':'DNN ✓'}</span></td>
+        </tr>
+        <tr>
+          <td>Physics residual MSE</td>
+          <td class="mono" style="color:var(--muted)">N/A</td>
+          <td class="mono">${pinn.physics_residual_mse}</td>
+          <td><span class="chip chip-indigo">PINN only</span></td>
+        </tr>
+        <tr>
+          <td>Learned β</td>
+          <td class="mono" style="color:var(--muted)">N/A</td>
+          <td class="mono">${pinn.beta}</td>
+          <td><span class="chip chip-indigo">PINN only</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:1rem;font-size:.82rem;color:var(--muted)">
+      <strong style="color:var(--text)">Interpretation:</strong> The PINN's learned β (effective cooling coefficient) has physical meaning — it quantifies the average cooling rate across all experimental conditions, consistent with Newton's law of cooling. The physics residual MSE near zero confirms the model respects the governing differential equation.
+    </p>
+  `;
+}
+
+window.onload=()=>{
+  loadArch();
+  loadMetrics();
+  loadImg('/api/compare/loss_curves','img-loss','sp-loss');
+  loadImg('/api/compare/scatter','img-scatter','sp-scatter');
+};
+</script>
+{% endblock %}

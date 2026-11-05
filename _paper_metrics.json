@@ -1,0 +1,137 @@
+{
+ "dataset_stats": {
+  "temperature": {
+   "count": 5011,
+   "mean": 224.176,
+   "std": 178.982,
+   "min": 42.8,
+   "median": 161.8,
+   "max": 872.2
+  },
+  "time": {
+   "count": 5011,
+   "mean": 104.946,
+   "std": 60.36,
+   "min": 1.0,
+   "median": 105.0,
+   "max": 210.0
+  },
+  "bath": {
+   "count": 5011,
+   "mean": 51.279,
+   "std": 20.764,
+   "min": 25.0,
+   "median": 60.0,
+   "max": 80.0
+  },
+  "theta": {
+   "count": 5011,
+   "mean": 0.214,
+   "std": 0.222,
+   "min": 0.003,
+   "median": 0.135,
+   "max": 1.003
+  },
+  "tau": {
+   "count": 5011,
+   "mean": 0.502,
+   "std": 0.289,
+   "min": 0.005,
+   "median": 0.502,
+   "max": 1.0
+  },
+  "T0": {
+   "count": 5011,
+   "mean": 858.986,
+   "std": 10.086,
+   "min": 847.0,
+   "median": 865.6,
+   "max": 872.1
+  }
+ },
+ "train_curves": 19,
+ "test_curves": 5,
+ "train_obs": 3961,
+ "test_obs": 1050,
+ "test_sheets": [
+  "Mineral4340_25C",
+  "Mineral4340_80C",
+  "Soy4340_25C",
+  "Soy4340_60C",
+  "Sunflower1045_25C"
+ ],
+ "dnn": {
+  "MAE": 32.057,
+  "RMSE": 63.1993,
+  "R2": 0.8773
+ },
+ "pinn": {
+  "MAE": 18.9592,
+  "RMSE": 30.4536,
+  "R2": 0.9715
+ },
+ "pinn_beta": 2.501404,
+ "pinn_physics_residual_mse": 3.13831735,
+ "dnn_physics_residual_mse": 1.74430621,
+ "dnn_iterations": 245,
+ "pinn_iterations": 400,
+ "per_oil": {
+  "Mineral": {
+   "pinn_mae": 23.9487,
+   "dnn_mae": 27.2828,
+   "n": 420
+  },
+  "Soy": {
+   "pinn_mae": 8.6263,
+   "dnn_mae": 26.7099,
+   "n": 420
+  },
+  "Sunflower": {
+   "pinn_mae": 29.6459,
+   "dnn_mae": 52.2995,
+   "n": 210
+  }
+ },
+ "per_curve": [
+  {
+   "sheet": "Mineral4340_25C",
+   "n": 210,
+   "pinn_mae": 36.88,
+   "dnn_mae": 33.583
+  },
+  {
+   "sheet": "Soy4340_25C",
+   "n": 210,
+   "pinn_mae": 11.288,
+   "dnn_mae": 28.97
+  },
+  {
+   "sheet": "Sunflower1045_25C",
+   "n": 210,
+   "pinn_mae": 29.646,
+   "dnn_mae": 52.299
+  },
+  {
+   "sheet": "Soy4340_60C",
+   "n": 210,
+   "pinn_mae": 5.965,
+   "dnn_mae": 24.449
+  },
+  {
+   "sheet": "Mineral4340_80C",
+   "n": 210,
+   "pinn_mae": 11.018,
+   "dnn_mae": 20.983
+  }
+ ],
+ "analytic": {
+  "MAE": 121.8622,
+  "RMSE": 151.002,
+  "R2": 0.2997
+ },
+ "dnn_res_mse": 1.7443,
+ "pinn_res_mse": 3.1383,
+ "pinn_res_mse_early": 16.0285,
+ "pinn_res_mse_late": 0.0111,
+ "beta": 2.5014
+}
